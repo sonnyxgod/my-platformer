@@ -47,6 +47,11 @@ public class PlayerController : MonoBehaviour
     [SerializeField, Range(0.1f, 0.8f)] private float stepInterval = 0.32f;
     [SerializeField, Range(0.1f, 2f)] private float footstepMinSpeed = 0.5f;
 
+    [Header("Взаємодія")]
+    [SerializeField] private Transform interactPoint;
+    [SerializeField, Range(0.2f, 1.5f)] private float interactRadius = 0.6f;
+    [SerializeField] private LayerMask interactableLayer;
+
     private static readonly int SpeedHash = Animator.StringToHash("Speed");
 
     private Rigidbody2D body;
@@ -99,6 +104,9 @@ public class PlayerController : MonoBehaviour
 
         // Введення читають у Update: FixedUpdate може пропустити короткий натиск
         moveInput = controls.Player.Move.ReadValue<Vector2>().x;
+
+        if (controls.Player.Interact.WasPressedThisFrame())
+            TryInteract();
 
         UpdateFootsteps();
         CheckLanding();
@@ -191,11 +199,25 @@ public class PlayerController : MonoBehaviour
         source.PlayOneShot(clip);
     }
 
+    // Контролер не знає ні про важіль, ні про платформу — лише про контракт IInteractable
+    private void TryInteract()
+    {
+        Collider2D hit = Physics2D.OverlapCircle(
+            interactPoint.position, interactRadius, interactableLayer);
+
+        if (hit != null && hit.TryGetComponent(out IInteractable target))
+            target.Interact();
+    }
+
     // Без візуалізації датчик налагоджувати неможливо
     private void OnDrawGizmosSelected()
     {
         if (groundCheck == null) return;
         Gizmos.color = Application.isPlaying && isGrounded ? Color.green : Color.red;
         Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
+
+        if (interactPoint == null) return;
+        Gizmos.color = Color.cyan;
+        Gizmos.DrawWireSphere(interactPoint.position, interactRadius);
     }
 }
