@@ -8,7 +8,8 @@ using UnityEngine.Tilemaps;
 // Інструмент редактора для лабораторної 4.
 // Меню Tools → Lab 4:
 //   1) створює GroundRuleTile (11 правил) і тайли декору/небезпеки/фону з нарізаного тайлсету;
-//   2) малює рівень 80 × 12 клітинок за картою (три біти) у тайлові шари Ground, Decor, Hazards, Background.
+//   2) малює рівень 120 × 12 клітинок: три біти навчання (x 0–79, лабораторна 4)
+//      і бойову арену для ворогів (x 80–119, лабораторна 5).
 // Після цього рівень можна доправляти вручну пензлями Tile Palette.
 public static class Lab4LevelBuilder
 {
@@ -17,7 +18,7 @@ public static class Lab4LevelBuilder
     private const string TilesFolder = "Assets/Art/Tilesets/Tiles";
     private const string RuleTilePath = "Assets/Art/Tilesets/GroundRuleTile.asset";
 
-    private const int W = 80, H = 12;
+    private const int W = 120, H = 12;
 
     // Позначки сусідів у Rule Tile
     private const int Any = 0;                                            // байдуже
@@ -100,12 +101,13 @@ public static class Lab4LevelBuilder
                 for (int y = y0; y <= y1; y++) g[x, y] = v;
         }
 
-        Fill(0, 79, 0, 2);                         // земля, поверхня на висоті 3
-        Fill(0, 0, 3, 9); Fill(79, 79, 3, 9);      // стіни по краях
+        Fill(0, W - 1, 0, 2);                      // земля, поверхня на висоті 3
+        Fill(0, 0, 3, 9); Fill(W - 1, W - 1, 3, 9);  // стіни по краях
         Fill(12, 13, 3, 4); Fill(19, 20, 3, 5);    // Біт 1: перешкоди на рівній землі
         Fill(33, 34, 3, 4); Fill(35, 38, 1, 2, false);   // Біт 2: перешкода + яма з шипами
         Fill(42, 43, 3, 5); Fill(44, 47, 1, 2, false);
         Fill(58, 69, 0, 2, false);                 // Біт 3: прірва 12 клітинок
+        Fill(95, 102, 3, 4);                       // Арена (Л5): уступ для стрільця
 
         for (int x = 0; x < W; x++)
             for (int y = 0; y < H; y++)
@@ -122,13 +124,14 @@ public static class Lab4LevelBuilder
 
         // ---------- Декор (без колайдера, «тихіший» за геометрію) ----------
         var decorMap = new Dictionary<int, int> { { 4, 8 }, { 6, 26 }, { 9, 11 }, { 16, 27 }, { 23, 9 }, { 28, 35 },
-                                                  { 31, 26 }, { 40, 27 }, { 50, 8 }, { 54, 11 }, { 72, 26 }, { 75, 27 } };
+                                                  { 31, 26 }, { 40, 27 }, { 50, 8 }, { 54, 11 }, { 72, 26 }, { 75, 27 },
+                                                  { 84, 9 }, { 90, 26 }, { 106, 27 }, { 113, 8 } };
         foreach (var kv in decorMap)
             if (g[kv.Key, 2] && !g[kv.Key, 3])
                 decor.SetTile(new Vector3Int(kv.Key, 3, 0), Load("tileset_" + kv.Value));
 
         // ---------- Тайловий задній план: пагорби за землею ----------
-        foreach (int x0 in new[] { 3, 22, 48, 71 })
+        foreach (int x0 in new[] { 3, 22, 48, 71, 84, 108 })
             for (int k = 0; k < 7; k++)
             {
                 back.SetTile(new Vector3Int(x0 + k, 3, 0), Load("tileset_" + (64 + k)));
@@ -141,7 +144,7 @@ public static class Lab4LevelBuilder
 
         foreach (var m in new[] { ground, decor, hazards, back }) EditorUtility.SetDirty(m);
         EditorSceneManager.MarkSceneDirty(ground.gameObject.scene);
-        Debug.Log("Lab 4: рівень 80 × 12 намальовано. Збережіть сцену (Ctrl+S).");
+        Debug.Log($"Lab 4/5: рівень {W} × {H} намальовано. Збережіть сцену (Ctrl+S).");
     }
 
     // ---------------- допоміжне ----------------
