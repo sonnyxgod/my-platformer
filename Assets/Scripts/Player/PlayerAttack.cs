@@ -47,6 +47,7 @@ public class PlayerAttack : MonoBehaviour
 
     private void Update()
     {
+        if (PauseController.IsPaused) return; // крізь меню паузи не б'ємо
         if (Time.time < readyAt) return;
         if (!controls.Player.Attack.WasPressedThisFrame()) return;
 
